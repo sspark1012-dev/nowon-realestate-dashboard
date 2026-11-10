@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>박상순부동산 · 노원구 아파트 대시보드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%2312345a'/%3E%3Cpath d='M8 44 L22 26 L30 34 L40 20 L56 44Z' fill='%232fa36b'/%3E%3C/svg%3E">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 120 120" aria-label="박상순부동산 로고">
+      <defs>
+        <linearGradient id="lgSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b4b7d"/><stop offset="1" stop-color="#0f2c4c"/></linearGradient>
+        <linearGradient id="lgMt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3cc07f"/><stop offset="1" stop-color="#1e8b57"/></linearGradient>
+      </defs>
+      <circle cx="60" cy="60" r="57" fill="url(#lgSky)" stroke="#d9b45a" stroke-width="4"/>
+      <!-- 수락산·불암산 -->
+      <path d="M10 78 L34 44 L46 58 L62 34 L84 64 L94 54 L112 78 Z" fill="url(#lgMt)"/>
+      <path d="M62 34 L68 43 L62 41 L57 44 Z" fill="#ffffff" opacity=".85"/>
+      <!-- 아파트 스카이라인 -->
+      <g fill="#ffffff">
+        <rect x="30" y="62" width="14" height="30" rx="1"/>
+        <rect x="47" y="52" width="16" height="40" rx="1"/>
+        <rect x="66" y="58" width="13" height="34" rx="1"/>
+        <rect x="82" y="66" width="11" height="26" rx="1"/>
+      </g>
+      <g fill="#1b4b7d">
+        <rect x="33" y="66" width="3" height="3"/><rect x="38" y="66" width="3" height="3"/><rect x="33" y="72" width="3" height="3"/><rect x="38" y="72" width="3" height="3"/><rect x="33" y="78" width="3" height="3"/><rect x="38" y="78" width="3" height="3"/>
+        <rect x="50" y="56" width="3" height="3"/><rect x="56" y="56" width="3" height="3"/><rect x="50" y="62" width="3" height="3"/><rect x="56" y="62" width="3" height="3"/><rect x="50" y="68" width="3" height="3"/><rect x="56" y="68" width="3" height="3"/><rect x="50" y="74" width="3" height="3"/><rect x="56" y="74" width="3" height="3"/>
+        <rect x="69" y="62" width="3" height="3"/><rect x="74" y="62" width="3" height="3"/><rect x="69" y="68" width="3" height="3"/><rect x="74" y="68" width="3" height="3"/><rect x="69" y="74" width="3" height="3"/><rect x="74" y="74" width="3" height="3"/>
+        <rect x="85" y="70" width="2.5" height="3"/><rect x="89" y="70" width="2.5" height="3"/><rect x="85" y="76" width="2.5" height="3"/><rect x="89" y="76" width="2.5" height="3"/>
+      </g>
+      <rect x="18" y="92" width="84" height="3" rx="1.5" fill="#d9b45a"/>
+      <text x="60" y="108" text-anchor="middle" font-size="11" font-weight="900" fill="#ffffff" font-family="Noto Sans KR, sans-serif" letter-spacing="1">NOWON</text>
+    </svg>
+    <div class="brand-text">
+      <div class="brand-badge">노원구 아파트 전문</div>
+      <h1>박상순부동산</h1>
+      <div class="brand-sub">공인중개사사무소 · 노원구 부동산 브리핑 대시보드</div>
+    </div>
+  </div>
+  <div class="top-right">
+    <a class="tel" href="tel:01094958873">
+      <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M6.6 10.8a15.2 15.2 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/></svg>
+      010-9495-8873
+    </a>
+    <div class="updated" id="updated"></div>
+  </div>
+</header>
+
+<nav class="controls">
+  <div class="ctl-group">
+    <span class="ctl-label">지역</span>
+    <div class="chips" id="dongChips"></div>
+  </div>
+  <div class="ctl-group">
+    <span class="ctl-label">집계</span>
+    <div class="seg" id="modeSeg">
+      <button data-mode="week" class="on">주간</button>
+      <button data-mode="month">월간</button>
+    </div>
+  </div>
+  <div class="ctl-group">
+    <span class="ctl-label">기간</span>
+    <input type="date" id="dFrom"> <span class="tilde">~</span> <input type="date" id="dTo">
+    <div class="presets" id="presets">
+      <button data-p="1m">1개월</button><button data-p="3m" class="on">3개월</button><button data-p="6m">6개월</button><button data-p="1y">1년</button><button data-p="all">전체</button>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <section class="kpis" id="kpis"></section>
+
+  <section class="grid2">
+    <div class="card">
+      <div class="card-h"><h2>거래량 · 평균 평당가 추이 <small id="trendSub"></small></h2>
+        <div class="seg sm" id="trendSeg"><button data-t="sale" class="on">매매</button><button data-t="jeonse">전세</button><button data-t="wolse">월세</button></div></div>
+      <div class="chart-box"><canvas id="cTrend"></canvas></div>
+      <p class="note">국토교통부 아파트 실거래가 · 계약일 기준 · 최근 30일은 신고기한(30일)으로 집계 진행중</p>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>아파트 가격지수 <small id="idxSub"></small></h2>
+        <div class="seg sm" id="idxSeg"><button data-t="sale" class="on">매매</button><button data-t="jeonse">전세</button></div></div>
+      <div class="chart-box"><canvas id="cIndex"></canvas></div>
+      <p class="note">한국부동산원 R-ONE 주간·월간 아파트 가격지수 (노원구 · 동북권 · 서울 · 전국)</p>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>매매수급지수 <small>(100 초과 = 매수자 우위)</small></h2></div>
+      <div class="chart-box"><canvas id="cSupply"></canvas></div>
+      <p class="note">한국부동산원 주간 매매수급동향 (구 단위 미공표 → 동북권·서울 기준)</p>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>노원구 평균가격 · 전세가율 · 거래량 <small>(월간)</small></h2></div>
+      <div class="chart-box"><canvas id="cAvg"></canvas></div>
+      <p class="note">한국부동산원 월간 평균매매·전세가격, 매매가격 대비 전세가격 비율, 아파트 매매거래 건수</p>
+    </div>
+  </section>
+
+  <!-- TOP10 + 지도 -->
+  <section class="card top10-wrap" id="top10Section">
+    <div class="card-h">
+      <h2><span class="crown">TOP 10</span> 노원구 아파트 <small id="top10Sub"></small></h2>
+      <div class="h-right">
+        <div class="seg" id="dealSeg">
+          <button data-d="sale" class="on">매매</button><button data-d="jeonse">전세</button><button data-d="wolse">월세</button>
+        </div>
+        <select id="rankBy">
+          <option value="count">거래량순</option>
+          <option value="ppa">평당가순</option>
+          <option value="max">최고가순</option>
+        </select>
+      </div>
+    </div>
+    <div class="top10">
+      <ol class="rank-list" id="rankList"></ol>
+      <div class="map-col">
+        <div id="map"></div>
+        <div class="map-legend">
+          <span><i class="lg sel"></i>선택 단지</span><span><i class="lg rk"></i>TOP10</span><span><i class="lg sub"></i>지하철</span><span><i class="lg sch"></i>학교</span><span><i class="lg mart"></i>마트·백화점</span><span><i class="lg ring"></i>반경 1km</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 추천매물 -->
+  <section class="card">
+    <div class="card-h">
+      <h2>박상순부동산 추천매물</h2>
+      <div class="h-right"><button class="btn ghost" id="resetListings">샘플 복원</button><button class="btn" id="addListing">+ 매물 등록</button></div>
+    </div>
+    <div class="listings" id="listings"></div>
+  </section>
+
+  <!-- 입지분석 -->
+  <section class="card analysis" id="analysis"></section>
+
+  <!-- 동별 아파트 리스트 -->
+  <section class="card">
+    <div class="card-h">
+      <h2 id="aptListTitle">아파트 리스트</h2>
+      <div class="h-right"><input type="search" id="aptSearch" placeholder="단지명 검색"></div>
+    </div>
+    <div class="table-wrap">
+      <table class="apt-table" id="aptTable">
+        <thead><tr>
+          <th data-k="name">단지명</th><th data-k="dong">동</th><th data-k="year" class="r">준공</th>
+          <th data-k="saleCnt" class="r">매매건수</th><th data-k="lastSale" class="r">최근 매매가</th><th data-k="ppa" class="r">평균 평당가</th>
+          <th data-k="jeonseCnt" class="r">전세건수</th><th data-k="lastJeonse" class="r">최근 전세가</th><th data-k="wolseCnt" class="r">월세건수</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="note">선택한 기간 내 거래 기준 · 행을 클릭하면 지도와 입지분석이 표시됩니다.</p>
+  </section>
+</main>
+
+<footer>
+  <div><b>박상순부동산</b> · 노원구 아파트 전문 공인중개사사무소 · Tel. 010-9495-8873</div>
+  <div class="src">자료: 국토교통부 실거래가(공공데이터포털) · 한국부동산원 R-ONE 부동산통계 · 지도 © VWorld(국토교통부), Esri · 주변시설 © OpenStreetMap contributors.
+  개발계획은 공개자료 요약으로 일정·규모가 변경될 수 있으며, 추천매물 가격은 예시입니다. 본 자료는 참고용이며 투자 판단의 책임은 이용자에게 있습니다.</div>
+</footer>
+
+<!-- 매물 등록 모달 -->
+<dialog id="listingDlg">
+  <form method="dialog" id="listingForm">
+    <h3>추천매물 등록</h3>
+    <label>단지명<input name="apt" list="aptNames" required placeholder="예: 포레나노원"></label>
+    <datalist id="aptNames"></datalist>
+    <div class="row">
+      <label>거래유형<select name="type"><option>매매</option><option>전세</option><option>월세</option></select></label>
+      <label>전용면적(㎡)<input name="area" type="number" step="0.01" required></label>
+      <label>층<input name="floor" placeholder="10/25층"></label>
+    </div>
+    <div class="row">
+      <label>가격/보증금(만원)<input name="price" type="number" required placeholder="예: 85000"></label>
+      <label>월세(만원)<input name="rent" type="number" placeholder="월세만 입력"></label>
+    </div>
+    <label>제목<input name="title" required placeholder="예: 역세권 로열층 급매"></label>
+    <label>태그(쉼표 구분)<input name="tags" placeholder="역세권, 학군, 신축"></label>
+    <label>메모<textarea name="memo" rows="2"></textarea></label>
+    <div class="dlg-btns"><button value="cancel" formnovalidate class="btn ghost">취소</button><button value="ok" class="btn">등록</button></div>
+  </form>
+</dialog>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="data/data.js"></script>
+<script src="data/pois.js"></script>
+<script src="assets/static.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
